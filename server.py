@@ -3,6 +3,7 @@ from flask import Flask, render_template, request
 from pprint import pformat
 import os
 import requests
+import json
 
 
 app = Flask(__name__)
@@ -13,7 +14,7 @@ app.secret_key = 'SECRETSECRETSECRET'
 app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = True
 
 
-API_KEY = os.environ['TICKETMASTER_KEY']
+API_KEY = os.environ['TICKETMASTER_KEY'] #allow python to get info
 
 
 @app.route('/')
@@ -41,7 +42,8 @@ def find_afterparties():
     sort = request.args.get('sort', '')
 
     url = 'https://app.ticketmaster.com/discovery/v2/events'
-    payload = {'apikey': API_KEY}
+    payload = {'apikey': API_KEY, 'postalCode': postalcode, 'keyword': keyword}
+    res = requests.get(url, params=payload)
 
     # TODO: Make a request to the Event Search endpoint to search for events
     #
@@ -54,9 +56,21 @@ def find_afterparties():
     # - Replace the empty list in `events` with the list of events from your
     #   search results
 
-    data = {'Test': ['This is just some test data'],
-            'page': {'totalElements': 1}}
-    events = []
+
+
+    data = res.json()
+    events = data["_embedded"]['events']
+    print(type(data["_embedded"]['events']))
+    #events = data['_embedded']['events']
+
+    #event = events[0] --> basecalle events[3] --> musical
+
+    # for event in events:
+    #     print(event[name])
+    
+
+    #name_of_event = event['name'] #value = Name of the event
+
 
     return render_template('search-results.html',
                            pformat=pformat,
